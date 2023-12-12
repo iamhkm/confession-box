@@ -1,0 +1,1 @@
+export const public_urls:string[] = ["/api/ping", "/api/user/sign-up"];
