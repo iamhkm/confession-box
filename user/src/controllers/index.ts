@@ -1,0 +1,1 @@
+export { pingController } from "./ping"
