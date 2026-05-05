@@ -1,0 +1,557 @@
+{
+  "info": {
+    "_postman_id": "confession-box-collection-2026",
+    "name": "Confession Box API",
+    "description": "Complete API collection for Confession Box application with role-based authentication",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Public Endpoints",
+      "description": "Public endpoints - no authentication required",
+      "item": [
+        {
+          "name": "Sign In",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('jwtToken', response.jwtToken);",
+                  "    pm.environment.set('username', response.username);",
+                  "    pm.environment.set('role', response.role);",
+                  "    console.log('JWT Token saved to environment');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"john_doe\",\n    \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/public/signin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "public",
+                "signin"
+              ]
+            },
+            "description": "Authenticate user and receive JWT token"
+          },
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"username\": \"john_doe\", \"password\": \"password123\"}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/public/signin",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["public", "signin"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n    \"jwtToken\": \"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2huX2RvZSIsInVzZXJJZCI6MSwicm9sZSI6IlVTRVIiLCJpYXQiOjE3MDQwNjcyMDAsImV4cCI6MTcwNDE1MzYwMH0...\",\n    \"username\": \"john_doe\",\n    \"role\": \"USER\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"john@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/public/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "public",
+                "forgot-password"
+              ]
+            },
+            "description": "Request password reset token"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User Management",
+      "description": "User CRUD operations",
+      "item": [
+        {
+          "name": "Create User (Register)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"new_user\",\n    \"email\": \"newuser@example.com\",\n    \"password\": \"password123\",\n    \"name\": \"New User\",\n    \"role\": \"USER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            },
+            "description": "Create a new user account (public endpoint)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Users (Admin Only)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            },
+            "description": "Get list of all users (Admin role required)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "1"
+              ]
+            },
+            "description": "Get user details by ID (Authenticated)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated Name\",\n    \"email\": \"updated@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "1"
+              ]
+            },
+            "description": "Update user profile (Authenticated)"
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"currentPassword\": \"password123\",\n    \"newPassword\": \"newpassword123\",\n    \"confirmPassword\": \"newpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/1/change-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "1",
+                "change-password"
+              ]
+            },
+            "description": "Change user password (Authenticated)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Status (Admin Only)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/1/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "1",
+                "status"
+              ]
+            },
+            "description": "Change user status - ACTIVE, INACTIVE, VERIFICATION_PENDING, SUSPENDED, BANNED (Admin role required)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User (Admin Only)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "1"
+              ]
+            },
+            "description": "Delete a user (Admin role required)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Confessions",
+      "description": "Confession CRUD operations",
+      "item": [
+        {
+          "name": "Get All Confessions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/confessions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "confessions"
+              ]
+            },
+            "description": "Get all confessions (Authenticated)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Confession by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/confessions/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "confessions",
+                "1"
+              ]
+            },
+            "description": "Get specific confession by ID (Authenticated)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Confessions by User ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/confessions/user/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "confessions",
+                "user",
+                "1"
+              ]
+            },
+            "description": "Get all confessions by specific user (Authenticated)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Confession",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"confesion\": \"This is my confession text\",\n    \"anonymous\": true,\n    \"userId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/confessions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "confessions"
+              ]
+            },
+            "description": "Create a new confession (Authenticated)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Confession",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"confesion\": \"Updated confession text\",\n    \"anonymous\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/confessions/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "confessions",
+                "1"
+              ]
+            },
+            "description": "Update confession content (Authenticated)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Confession Status (Admin Only)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/confessions/1/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "confessions",
+                "1",
+                "status"
+              ]
+            },
+            "description": "Change confession status - DRAFT, ACTIVE, INACTIVE, INACTIVE_BY_ADMIN, BLOCKED_BY_ADMIN (Admin role required)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Confession",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/confessions/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "confessions",
+                "1"
+              ]
+            },
+            "description": "Delete a confession (Authenticated)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/confession-box",
+      "type": "string",
+      "description": "Base URL for Confession Box API"
+    },
+    {
+      "key": "jwtToken",
+      "value": "",
+      "type": "string",
+      "description": "JWT Token - Auto-populated after Sign In request"
+    },
+    {
+      "key": "username",
+      "value": "",
+      "type": "string",
+      "description": "Current user's username"
+    },
+    {
+      "key": "role",
+      "value": "",
+      "type": "string",
+      "description": "Current user's role (USER or ADMIN)"
+    }
+  ]
+}
