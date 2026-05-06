@@ -15,18 +15,19 @@ import com.hkm.confession_box.dto.UserSignUpDto;
 import com.hkm.confession_box.exception.InvalidUserException;
 import com.hkm.confession_box.exception.InvalidUserStateException;
 import com.hkm.confession_box.dto.UserResponseDto;
+import com.hkm.confession_box.service.AuthService;
 import com.hkm.confession_box.service.UserService;
 
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/public")
-public class PublicController {
+public class AuthController {
 	
-	private UserService userService;
+	private AuthService authService;
 	
-	public PublicController(UserService userService) {
-		this.userService = userService;
+	public AuthController(AuthService authService) {
+		this.authService = authService;
 	}
 	
 	/**
@@ -39,7 +40,7 @@ public class PublicController {
 	 */
 	@PostMapping("/signin")
 	public ResponseEntity<LoginResponseDto> signIn(@Valid @RequestBody SigninRequestDto signinRequest) throws InvalidUserStateException, InvalidUserException {
-		LoginResponseDto loginResponse = userService.signIn(signinRequest.username(), signinRequest.password());
+		LoginResponseDto loginResponse = authService.signIn(signinRequest.username(), signinRequest.password());
 		return ResponseEntity.ok(loginResponse);
 	}
 	
@@ -53,7 +54,7 @@ public class PublicController {
 	@PostMapping("/forgot-password")
 	public ResponseEntity<ForgotPasswordResponseDto> forgotPassword(
 			@Valid @RequestBody ForgotPasswordRequestDto forgotPasswordRequest) {
-		String resetToken = userService.forgotPassword(forgotPasswordRequest.email());
+		String resetToken = authService.forgotPassword(forgotPasswordRequest.email());
 		ForgotPasswordResponseDto response = new ForgotPasswordResponseDto(
 			"Password reset token generated successfully. Please use this token to reset your password.",
 			resetToken,
@@ -64,7 +65,7 @@ public class PublicController {
 	
 	@PostMapping("/signup")
 	public ResponseEntity<UserResponseDto> signUp(@Valid @RequestBody UserSignUpDto signUpRequest) {
-		UserResponseDto user = userService.signUp(signUpRequest);
+		UserResponseDto user = authService.signUp(signUpRequest);
 		return ResponseEntity.status(HttpStatus.CREATED).body(user);
 	}
 }

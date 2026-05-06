@@ -36,14 +36,10 @@ public class UserService {
 
 	private UserDao userDao;
 	private HashUtil hashUtils;
-	private JwtUtil jwtUtil;
-	private PasswordEncoder passwordEncoder;
 
-	public UserService(UserDao userDao, HashUtil hashUtils, JwtUtil jwtUtil, PasswordEncoder passwordEncoder) {
+	public UserService(UserDao userDao, HashUtil hashUtils) {
 		this.userDao = userDao;
 		this.hashUtils = hashUtils;
-		this.jwtUtil = jwtUtil;
-		this.passwordEncoder = passwordEncoder;
 	}
 
 	/**
@@ -91,23 +87,6 @@ public class UserService {
 		user.setUpdatedAt(LocalDateTime.now());
 		user.setUpdatedBy(null);
 		user.setApprovedBy(null);
-		User savedUser = userDao.save(user);
-		return convertToUserResponseDto(savedUser);
-	}
-	
-	@Transactional
-	public UserResponseDto signUp(@Valid UserSignUpDto signUpRequest) {
-		User user = new User();
-		user.setUsername(signUpRequest.username());
-		user.setName(signUpRequest.name());
-		user.setEmail(signUpRequest.email());
-		user.setRole(UserRole.USER);
-		user.setPassword(hashUtils.hashPassword(signUpRequest.password()));
-		user.setCreatedAt(LocalDateTime.now());
-		user.setUpdatedAt(LocalDateTime.now());
-		user.setUpdatedBy(null);
-		user.setApprovedBy(null);
-		user.setStatus(UserStatus.VERIFICATION_PENDING);
 		User savedUser = userDao.save(user);
 		return convertToUserResponseDto(savedUser);
 	}
@@ -175,49 +154,6 @@ public class UserService {
 		userDao.deleteById(id);
 	}
 
-	/**
-	 * Sign in user with username and password and return JWT token
-	 * @throws InvalidUserStateException 
-	 * @throws InvalidUserException 
-	 */
-	public LoginResponseDto signIn(String username, String password)
-	        throws InvalidUserStateException, InvalidUserException {
-
-	    User user = userDao.findByUsername(username)
-	            .orElseThrow(() ->
-	                    new InvalidUserException("Invalid username or password"));
-	    if (!passwordEncoder.matches(password, user.getPassword())) {
-	        throw new InvalidUserException("Invalid username or password");
-	    }
-	    if (user.getStatus() != UserStatus.ACTIVE) {
-	        throw new InvalidUserStateException(
-	                "User is in " + user.getStatus() + " state. Please contact support.");
-	    }
-	    String jwtToken = jwtUtil.generateToken(
-	            user.getId(),
-	            user.getUsername(),
-	            user.getRole().toString()
-	    );
-	    return new LoginResponseDto(jwtToken, user.getUsername(), user.getRole());
-	}
-
-	/**
-	 * Handle forgot password request
-	 */
-	public String forgotPassword(String email) {
-		userDao.findByEmail(email)
-			.orElseThrow(() -> new RuntimeException("User not found with email: " + email));
-		
-		// Generate a temporary reset token
-		String resetToken = UUID.randomUUID().toString();
-		
-		// In a real application, you would:
-		// 1. Save the reset token to the user (with expiration time)
-		// 2. Send an email with the reset link containing the token
-		// For now, we'll just return the token
-		
-		return resetToken;
-	}
 	
 	/**
 	 * Get user by email

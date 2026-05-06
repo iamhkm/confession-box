@@ -56,6 +56,12 @@ public class UserController {
 		UserResponseDto user = userService.getUserById(id);
 		return ResponseEntity.ok(user);
 	}
+	
+	@GetMapping("/me")
+	public ResponseEntity<UserResponseDto> getSelf(@PathVariable int id) {
+		UserResponseDto user = userService.getUserById(id);
+		return ResponseEntity.ok(user);
+	}
 
 	/**
 	 * Create a new user
@@ -77,7 +83,7 @@ public class UserController {
 	 * @param updateUserRequest User update request
 	 * @return UserResponseDto with updated user details
 	 */
-	@PutMapping("/{id}")
+	@PutMapping("/me")
 	public ResponseEntity<UserResponseDto> updateUser(@PathVariable int id,
 			@Valid @RequestBody UpdateUserRequestDto updateUserRequest) {
 		UserResponseDto updatedUser = userService.updateUser(id, updateUserRequest);
