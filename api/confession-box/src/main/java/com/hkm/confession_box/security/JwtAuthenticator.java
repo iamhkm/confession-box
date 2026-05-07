@@ -2,7 +2,6 @@ package com.hkm.confession_box.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -31,14 +30,7 @@ public class JwtAuthenticator {
 				.authorizeHttpRequests(auth -> auth
 						// Public endpoints - anyone can access
 						.requestMatchers("/auth/**").permitAll()
-						.requestMatchers(HttpMethod.GET, "/users/me").authenticated()
-						.requestMatchers(HttpMethod.PUT, "/users/me").authenticated()
-						.requestMatchers(HttpMethod.GET, "/users").hasRole("ADMIN")
-						.requestMatchers(HttpMethod.GET, "/users/*").hasRole("ADMIN")
-						.requestMatchers(HttpMethod.PUT, "/users/*").hasRole("ADMIN")
-						.requestMatchers(HttpMethod.PUT, "/users/*/status").hasRole("ADMIN")
-						.requestMatchers(HttpMethod.POST, "/users").hasRole("ADMIN")
-						.requestMatchers(HttpMethod.DELETE, "/users/*").hasRole("ADMIN")
+						.requestMatchers("/admin/users/").authenticated()
 						.anyRequest().authenticated())
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class).build();
 	}

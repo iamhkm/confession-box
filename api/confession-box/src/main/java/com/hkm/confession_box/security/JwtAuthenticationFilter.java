@@ -23,7 +23,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-	@Value("${jwt.secret:mySecretKeyForJWTTokenGenerationPurposeOnlyConfessionBoxApplication2026}")
+	@Value("${jwt.secret}")
 	private String jwtSecret;
 
 	@Override

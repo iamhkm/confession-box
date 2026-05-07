@@ -16,12 +16,10 @@ import com.hkm.confession_box.exception.InvalidUserException;
 import com.hkm.confession_box.exception.InvalidUserStateException;
 import com.hkm.confession_box.dto.UserResponseDto;
 import com.hkm.confession_box.service.AuthService;
-import com.hkm.confession_box.service.UserService;
-
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/public")
+@RequestMapping("/auth")
 public class AuthController {
 	
 	private AuthService authService;
