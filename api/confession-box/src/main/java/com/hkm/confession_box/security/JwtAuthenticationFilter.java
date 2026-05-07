@@ -78,29 +78,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	 * Extract authentication details from JWT token
 	 */
 	private Authentication getAuthentication(String token) {
-		try {
-			SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
-			Claims claims = Jwts.parser()
-				.verifyWith(key)
-				.build()
-				.parseSignedClaims(token)
-				.getPayload();
-			
-			String username = claims.getSubject();
-			String role = (String) claims.get("role");
-			
-			// Convert role to ROLE_ format for Spring Security
-			String roleWithPrefix = "ROLE_" + (role != null ? role : "USER");
-			
-			return new UsernamePasswordAuthenticationToken(
-				username,
-				null,
-				Collections.singletonList(new SimpleGrantedAuthority(roleWithPrefix))
-			);
-		} catch (Exception e) {
-			logger.error("Error extracting authentication from token: ", e);
-			return null;
-		}
+
+	    SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
+
+	    Claims claims = Jwts.parser()
+	            .verifyWith(key)
+	            .build()
+	            .parseSignedClaims(token)
+	            .getPayload();
+
+	    Integer userId = claims.get("userId", Integer.class);
+	    String username = claims.getSubject();
+	    String role = claims.get("role", String.class);
+
+	    String roleWithPrefix = "ROLE_" + (role != null ? role : "USER");
+
+	    UserPrincipal principal = new UserPrincipal(
+	            userId,
+	            username,
+	            null,
+	            Collections.singletonList(
+	                    new SimpleGrantedAuthority(roleWithPrefix))
+	    );
+
+	    return new UsernamePasswordAuthenticationToken(
+	            principal,
+	            null,
+	            principal.getAuthorities()
+	    );
 	}
 }
 

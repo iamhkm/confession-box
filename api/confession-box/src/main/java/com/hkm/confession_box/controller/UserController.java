@@ -2,7 +2,6 @@ package com.hkm.confession_box.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,8 +25,8 @@ public class UserController {
 	}
 
 	@GetMapping("/me")
-	public ResponseEntity<UserResponseDto> getSelf(@PathVariable int id) {
-		UserResponseDto user = userService.getUserById(id);
+	public ResponseEntity<UserResponseDto> getSelf() {
+		UserResponseDto user = userService.getSelfUser();
 		return ResponseEntity.ok(user);
 	}
 
@@ -39,9 +38,8 @@ public class UserController {
 	 * @return UserResponseDto with updated user details
 	 */
 	@PutMapping("/me")
-	public ResponseEntity<UserResponseDto> updateUser(@PathVariable int id,
-			@Valid @RequestBody UpdateUserRequestDto updateUserRequest) {
-		UserResponseDto updatedUser = userService.updateUser(id, updateUserRequest);
+	public ResponseEntity<UserResponseDto> updateUser(@Valid @RequestBody UpdateUserRequestDto updateUserRequest) {
+		UserResponseDto updatedUser = userService.updateUser(updateUserRequest);
 		return ResponseEntity.ok(updatedUser);
 	}
 
@@ -52,10 +50,9 @@ public class UserController {
 	 * @param passwordRequest Password change request
 	 * @return ResponseEntity with status
 	 */
-	@PostMapping("/{id}/change-password")
-	public ResponseEntity<String> changePassword(@PathVariable int id,
-			@Valid @RequestBody ChangePasswordRequestDto passwordRequest) {
-		userService.changePassword(id, passwordRequest);
+	@PostMapping("/me/change-password")
+	public ResponseEntity<String> changePassword(@Valid @RequestBody ChangePasswordRequestDto passwordRequest) {
+		userService.changePassword(passwordRequest);
 		return ResponseEntity.ok("Password changed successfully");
 	}
 

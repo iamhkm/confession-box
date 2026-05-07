@@ -1,6 +1,9 @@
 package com.hkm.confession_box.service;
 
 import java.time.LocalDateTime;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import com.hkm.confession_box.Dao.UserDao;
 import com.hkm.confession_box.dto.ChangePasswordRequestDto;
@@ -8,6 +11,7 @@ import com.hkm.confession_box.dto.UpdateUserRequestDto;
 import com.hkm.confession_box.dto.UserResponseDto;
 import com.hkm.confession_box.exception.InvalidUserException;
 import com.hkm.confession_box.models.User;
+import com.hkm.confession_box.security.UserPrincipal;
 import com.hkm.confession_box.utils.HashUtil;
 import jakarta.validation.constraints.NotBlank;
 
@@ -25,9 +29,10 @@ public class UserService {
 	/**
 	 * Get detailed user information by ID
 	 */
-	public UserResponseDto getUserById(int id) {
-		return userDao.findById(id).map(this::convertToUserResponseDto)
-				.orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+	public UserResponseDto getSelfUser() {
+		UserPrincipal user = getCurrentUser();
+		return userDao.findById(user.getId()).map(this::convertToUserResponseDto)
+				.orElseThrow(() -> new RuntimeException("User not found with id: " + user.getId()));
 	}
 
 	public UserResponseDto getUserByUsername(@NotBlank(message = "Username cannot be null or empty") String username) {
@@ -38,8 +43,9 @@ public class UserService {
 	/**
 	 * Update user profile information
 	 */
-	public UserResponseDto updateUser(int id, UpdateUserRequestDto updateRequest) {
-		return userDao.findById(id).map(existingUser -> {
+	public UserResponseDto updateUser(UpdateUserRequestDto updateRequest) {
+		UserPrincipal user = getCurrentUser();
+		return userDao.findById(user.getId()).map(existingUser -> {
 			if (updateRequest.email() != null && !updateRequest.email().equals(existingUser.getEmail())) {
 				if (userDao.existsByEmail(updateRequest.email())) {
 					throw new RuntimeException("Email already exists");
@@ -52,15 +58,15 @@ public class UserService {
 			existingUser.setUpdatedAt(LocalDateTime.now());
 			User updatedUser = userDao.save(existingUser);
 			return convertToUserResponseDto(updatedUser);
-		}).orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+		}).orElseThrow(() -> new RuntimeException("User not found with id: " + user.getId()));
 	}
 
 	/**
 	 * Change user password
 	 */
-	public void changePassword(int id, ChangePasswordRequestDto passwordRequest) {
-		User user = userDao.findById(id).orElseThrow(() -> new RuntimeException("User not found with id: " + id));
-
+	public void changePassword(ChangePasswordRequestDto passwordRequest) {
+		UserPrincipal currentUsere = getCurrentUser();
+		User user = userDao.findById(currentUsere.getId()).orElseThrow(() -> new RuntimeException("User not found with id: " + currentUsere.getId()));
 		String hashedCurrentPassword = hashUtils.hashPassword(passwordRequest.currentPassword());
 		if (!hashedCurrentPassword.equals(user.getPassword())) {
 			throw new RuntimeException("Current password is incorrect");
@@ -83,6 +89,13 @@ public class UserService {
 	public UserResponseDto getUserByEmail(String email) throws InvalidUserException {
 		return userDao.findByEmail(email).map(this::convertToUserResponseDto)
 				.orElseThrow(() -> new InvalidUserException("User not found with email: " + email));
+	}
+	
+	private UserPrincipal getCurrentUser() {
+		Authentication auth =
+		        SecurityContextHolder.getContext().getAuthentication();
+		UserPrincipal user = (UserPrincipal) auth.getPrincipal();
+		return user;
 	}
 
 	/**

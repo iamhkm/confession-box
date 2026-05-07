@@ -4,6 +4,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.hkm.confession_box.security.UserPrincipal;
 import org.springframework.stereotype.Service;
 import com.hkm.confession_box.Dao.ConfessionDao;
 import com.hkm.confession_box.Dao.UserDao;
@@ -30,9 +33,22 @@ public class ConfessionService {
 	 * Get all confessions
 	 */
 	public List<ConfessionResponseDto> getAllConfessions() {
-		return confessionDao.findAll().stream()
-			.map(this::convertToConfessionResponseDto)
-			.collect(Collectors.toList());
+		Authentication auth =
+		        SecurityContextHolder.getContext().getAuthentication();
+
+		    UserPrincipal user = (UserPrincipal) auth.getPrincipal();
+
+		    if (user.hasRole("ADMIN")) {
+		        return confessionDao.findAll()
+		                .stream()
+		                .map(this::convertToConfessionResponseDto)
+		                .toList();
+		    }
+
+		    return confessionDao.findByUserId(user.getId())
+		            .stream()
+		            .map(this::convertToConfessionResponseDto)
+		            .toList();
 	}
 	
 	/**
