@@ -25,14 +25,9 @@ public class UserPrincipal implements UserDetails {
         this.authorities = authorities;
     }
 
-    // ⭐ Custom getter (VERY IMPORTANT)
     public Integer getId() {
         return id;
     }
-
-    // ==============================
-    // UserDetails methods
-    // ==============================
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

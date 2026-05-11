@@ -14,6 +14,7 @@ import com.hkm.confession_box.dto.ConfessionResponseDto;
 import com.hkm.confession_box.dto.CreateConfessionRequestDto;
 import com.hkm.confession_box.dto.UpdateConfessionRequestDto;
 import com.hkm.confession_box.dto.UpdateConfessionStatusDto;
+import com.hkm.confession_box.exception.InvalidUserException;
 import com.hkm.confession_box.models.Confession;
 import com.hkm.confession_box.models.ConfessionStatus;
 import com.hkm.confession_box.models.User;
@@ -62,11 +63,12 @@ public class ConfessionService {
 
 	/**
 	 * Create a new confession
+	 * @throws InvalidUserException 
 	 */
-	public ConfessionResponseDto createConfession(CreateConfessionRequestDto createRequest) {
-		User user = userDao.findById(createRequest.userId())
-			.orElseThrow(() -> new RuntimeException("User not found with id: " + createRequest.userId()));
-		
+	public ConfessionResponseDto createConfession(CreateConfessionRequestDto createRequest) throws InvalidUserException {
+		UserPrincipal currentUsere = getCurrentUser();
+		User user = userDao.findById(currentUsere.getId())
+			.orElseThrow(() -> new InvalidUserException("User not found with id: " + currentUsere.getId()));
 		Confession confession = new Confession();
 		confession.setConfesion(createRequest.confesion());
 		confession.setAnonymous(createRequest.anonymous());
@@ -74,7 +76,7 @@ public class ConfessionService {
 		confession.setUser(user);
 		confession.setCreatedAt(LocalDateTime.now());
 		confession.setUpdatedAt(LocalDateTime.now());
-		
+		confession.setUser(user);
 		Confession savedConfession = confessionDao.save(confession);
 		return convertToConfessionResponseDto(savedConfession);
 	}
@@ -141,6 +143,13 @@ public class ConfessionService {
 			confession.getCreatedAt(),
 			confession.getUpdatedAt()
 		);
+	}
+	
+	private UserPrincipal getCurrentUser() {
+		Authentication auth =
+		        SecurityContextHolder.getContext().getAuthentication();
+		UserPrincipal user = (UserPrincipal) auth.getPrincipal();
+		return user;
 	}
 	
 }
