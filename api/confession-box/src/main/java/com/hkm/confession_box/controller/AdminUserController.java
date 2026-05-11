@@ -22,7 +22,7 @@ import com.hkm.confession_box.service.AdminUserService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping(name = "/admin/users")
+@RequestMapping("/admin/users")
 public class AdminUserController {
 
 	private AdminUserService adminUserService;

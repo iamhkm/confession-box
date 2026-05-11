@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import ConfessionList from "../Confessions/ConfessionList";
+import UserManagement from "../Admin/UserManagement";
 import apiService from "../../services/apiService";
 import "./Dashboard.css";
 
@@ -12,6 +13,7 @@ const Dashboard = () => {
     draftConfessions: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [adminTab, setAdminTab] = useState("confessions");
 
   useEffect(() => {
     loadStats();
@@ -77,7 +79,27 @@ const Dashboard = () => {
 
       <div className="dashboard-content">
         {isAdmin() ? (
-          <ConfessionList />
+          <>
+            <div className="admin-tabs">
+              <button
+                className={`tab-button ${adminTab === "confessions" ? "active" : ""}`}
+                onClick={() => setAdminTab("confessions")}
+              >
+                📋 Confessions
+              </button>
+              <button
+                className={`tab-button ${adminTab === "users" ? "active" : ""}`}
+                onClick={() => setAdminTab("users")}
+              >
+                👥 Users
+              </button>
+            </div>
+            {adminTab === "confessions" ? (
+              <ConfessionList />
+            ) : (
+              <UserManagement />
+            )}
+          </>
         ) : (
           <div className="user-dashboard">
             <div className="welcome-card">

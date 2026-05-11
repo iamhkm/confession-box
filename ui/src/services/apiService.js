@@ -81,29 +81,33 @@ const apiService = {
     return apiClient.delete(`/confessions/${id}`);
   },
 
-  // User endpoints
+  // User endpoints (Admin)
   getAllUsers: () => {
-    return apiClient.get("/users");
+    return apiClient.get("/admin/users");
   },
 
   getUserById: (id) => {
-    return apiClient.get(`/users/${id}`);
+    return apiClient.get(`/admin/users/${id}`);
+  },
+
+  createUser: (userData) => {
+    return apiClient.post("/admin/users", userData);
   },
 
   updateUser: (id, userData) => {
-    return apiClient.put(`/users/${id}`, userData);
+    return apiClient.put(`/admin/users/${id}`, userData);
   },
 
   changePassword: (id, passwordData) => {
-    return apiClient.post(`/users/${id}/change-password`, passwordData);
+    return apiClient.post(`/admin/users/${id}/change-password`, passwordData);
   },
 
   updateUserStatus: (id, status) => {
-    return apiClient.put(`/users/${id}/status`, { status });
+    return apiClient.put(`/admin/users/${id}/status`, { status });
   },
 
   deleteUser: (id) => {
-    return apiClient.delete(`/users/${id}`);
+    return apiClient.delete(`/admin/users/${id}`);
   },
 };
 
