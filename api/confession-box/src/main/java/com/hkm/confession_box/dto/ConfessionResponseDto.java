@@ -10,6 +10,7 @@ public record ConfessionResponseDto(
 	ConfessionStatus status,
 	Integer userId,
 	String username,
+	String name,
 	LocalDateTime createdAt,
 	LocalDateTime updatedAt
 ) {}

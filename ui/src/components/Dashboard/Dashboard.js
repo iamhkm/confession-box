@@ -95,7 +95,7 @@ const Dashboard = () => {
               </button>
             </div>
             {adminTab === "confessions" ? (
-              <ConfessionList />
+              <ConfessionList isAdmin={true} />
             ) : (
               <UserManagement />
             )}
@@ -111,10 +111,10 @@ const Dashboard = () => {
               </p>
               <p>
                 Navigate to <strong>My Confessions</strong> to create and manage
-                your confessions, or view all confessions below.
+                your confessions, or view all active confessions below.
               </p>
             </div>
-            <ConfessionList />
+            <ConfessionList showActiveOnly={true} />
           </div>
         )}
       </div>

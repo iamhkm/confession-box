@@ -57,6 +57,10 @@ const apiService = {
     return apiClient.get("/confessions");
   },
 
+  getActiveConfessions: () => {
+    return apiClient.get("/confessions/active");
+  },
+
   getConfessionById: (id) => {
     return apiClient.get(`/confessions/${id}`);
   },
@@ -81,7 +85,20 @@ const apiService = {
     return apiClient.delete(`/confessions/${id}`);
   },
 
-  // User endpoints (Admin)
+  // User Profile endpoints (authenticated users)
+  getMyProfile: () => {
+    return apiClient.get("/users/me");
+  },
+
+  updateMyProfile: (userData) => {
+    return apiClient.put("/users/me", userData);
+  },
+
+  changeMyPassword: (passwordData) => {
+    return apiClient.post("/users/me/change-password", passwordData);
+  },
+
+  // Admin - User Management endpoints
   getAllUsers: () => {
     return apiClient.get("/admin/users");
   },
@@ -92,14 +109,6 @@ const apiService = {
 
   createUser: (userData) => {
     return apiClient.post("/admin/users", userData);
-  },
-
-  updateUser: (id, userData) => {
-    return apiClient.put(`/admin/users/${id}`, userData);
-  },
-
-  changePassword: (id, passwordData) => {
-    return apiClient.post(`/admin/users/${id}/change-password`, passwordData);
   },
 
   updateUserStatus: (id, status) => {

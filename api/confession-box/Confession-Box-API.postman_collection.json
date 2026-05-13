@@ -7,8 +7,8 @@
   },
   "item": [
     {
-      "name": "Public Endpoints",
-      "description": "Public endpoints - no authentication required",
+      "name": "Authentication",
+      "description": "Authentication endpoints - no authentication required",
       "item": [
         {
           "name": "Sign In",
@@ -41,12 +41,12 @@
               "raw": "{\n    \"username\": \"john_doe\",\n    \"password\": \"password123\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/public/signin",
+              "raw": "{{baseUrl}}/auth/signin",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "public",
+                "auth",
                 "signin"
               ]
             },
@@ -63,9 +63,14 @@
                   "raw": "{\"username\": \"john_doe\", \"password\": \"password123\"}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/public/signin",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["public", "signin"]
+                  "raw": "{{baseUrl}}/auth/signin",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "signin"
+                  ]
                 }
               },
               "status": "OK",
@@ -76,6 +81,34 @@
               "body": "{\n    \"jwtToken\": \"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2huX2RvZSIsInVzZXJJZCI6MSwicm9sZSI6IlVTRVIiLCJpYXQiOjE3MDQwNjcyMDAsImV4cCI6MTcwNDE1MzYwMH0...\",\n    \"username\": \"john_doe\",\n    \"role\": \"USER\"\n}"
             }
           ]
+        },
+        {
+          "name": "Sign Up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"new_user\",\n    \"email\": \"newuser@example.com\",\n    \"password\": \"password123\",\n    \"name\": \"New User\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "signup"
+              ]
+            },
+            "description": "Register a new user account"
+          },
+          "response": []
         },
         {
           "name": "Forgot Password",
@@ -92,12 +125,12 @@
               "raw": "{\n    \"email\": \"john@example.com\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/public/forgot-password",
+              "raw": "{{baseUrl}}/auth/forgot-password",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "public",
+                "auth",
                 "forgot-password"
               ]
             },
@@ -108,38 +141,11 @@
       ]
     },
     {
-      "name": "User Management",
-      "description": "User CRUD operations",
+      "name": "User Profile",
+      "description": "User profile management - authenticated users",
       "item": [
         {
-          "name": "Create User (Register)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"username\": \"new_user\",\n    \"email\": \"newuser@example.com\",\n    \"password\": \"password123\",\n    \"name\": \"New User\",\n    \"role\": \"USER\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/users",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users"
-              ]
-            },
-            "description": "Create a new user account (public endpoint)"
-          },
-          "response": []
-        },
-        {
-          "name": "Get All Users (Admin Only)",
+          "name": "Get My Profile",
           "request": {
             "method": "GET",
             "header": [
@@ -149,11 +155,107 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/users",
+              "raw": "{{baseUrl}}/users/me",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "Get current authenticated user's profile"
+          },
+          "response": []
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated Name\",\n    \"email\": \"updated@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "Update current user's profile information"
+          },
+          "response": []
+        },
+        {
+          "name": "Change My Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"currentPassword\": \"password123\",\n    \"newPassword\": \"newpassword123\",\n    \"confirmPassword\": \"newpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/me/change-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "change-password"
+              ]
+            },
+            "description": "Change current user's password"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - User Management",
+      "description": "Admin user management operations - requires ADMIN role",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
                 "users"
               ]
             },
@@ -172,53 +274,22 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/users/1",
+              "raw": "{{baseUrl}}/admin/users/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "admin",
                 "users",
                 "1"
               ]
             },
-            "description": "Get user details by ID (Authenticated)"
+            "description": "Get user details by ID (Admin role required)"
           },
           "response": []
         },
         {
-          "name": "Update User",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwtToken}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"name\": \"Updated Name\",\n    \"email\": \"updated@example.com\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/users/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users",
-                "1"
-              ]
-            },
-            "description": "Update user profile (Authenticated)"
-          },
-          "response": []
-        },
-        {
-          "name": "Change Password",
+          "name": "Create User",
           "request": {
             "method": "POST",
             "header": [
@@ -233,25 +304,24 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"currentPassword\": \"password123\",\n    \"newPassword\": \"newpassword123\",\n    \"confirmPassword\": \"newpassword123\"\n}"
+              "raw": "{\n    \"username\": \"admin_created_user\",\n    \"email\": \"adminuser@example.com\",\n    \"password\": \"password123\",\n    \"name\": \"Admin Created User\",\n    \"role\": \"USER\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/users/1/change-password",
+              "raw": "{{baseUrl}}/admin/users",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "users",
-                "1",
-                "change-password"
+                "admin",
+                "users"
               ]
             },
-            "description": "Change user password (Authenticated)"
+            "description": "Create a new user (Admin role required)"
           },
           "response": []
         },
         {
-          "name": "Update User Status (Admin Only)",
+          "name": "Update User Status",
           "request": {
             "method": "PUT",
             "header": [
@@ -266,25 +336,26 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"status\": \"ACTIVE\"\n}"
+              "raw": "{\n    \"status\": \"BLOCKED_BY_ADMIN\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/users/1/status",
+              "raw": "{{baseUrl}}/admin/users/1/status",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "admin",
                 "users",
                 "1",
                 "status"
               ]
             },
-            "description": "Change user status - ACTIVE, INACTIVE, VERIFICATION_PENDING, SUSPENDED, BANNED (Admin role required)"
+            "description": "Change user status - ACTIVE, INACTIVE, VERIFICATION_PENDING, SUSPENDED, BANNED, BLOCKED_BY_ADMIN (Admin role required). Use BLOCKED_BY_ADMIN when admin blocks a user."
           },
           "response": []
         },
         {
-          "name": "Delete User (Admin Only)",
+          "name": "Delete User",
           "request": {
             "method": "DELETE",
             "header": [
@@ -294,11 +365,12 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/users/1",
+              "raw": "{{baseUrl}}/admin/users/1",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "admin",
                 "users",
                 "1"
               ]
@@ -314,7 +386,7 @@
       "description": "Confession CRUD operations",
       "item": [
         {
-          "name": "Get All Confessions",
+          "name": "Get All Confessions (Admin Only)",
           "request": {
             "method": "GET",
             "header": [
@@ -332,7 +404,31 @@
                 "confessions"
               ]
             },
-            "description": "Get all confessions (Authenticated)"
+            "description": "Get all confessions (Admin role required)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Active Confessions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/confessions/active",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "confessions",
+                "active"
+              ]
+            },
+            "description": "Get all active confessions (available to all authenticated users)"
           },
           "response": []
         },
@@ -356,7 +452,7 @@
                 "1"
               ]
             },
-            "description": "Get specific confession by ID (Authenticated)"
+            "description": "Get specific confession by ID (Admin or confession owner)"
           },
           "response": []
         },
@@ -381,7 +477,7 @@
                 "1"
               ]
             },
-            "description": "Get all confessions by specific user (Authenticated)"
+            "description": "Get all confessions by specific user (Admin or the user themselves)"
           },
           "response": []
         },
@@ -444,12 +540,12 @@
                 "1"
               ]
             },
-            "description": "Update confession content (Authenticated)"
+            "description": "Update confession content (Admin or confession owner)"
           },
           "response": []
         },
         {
-          "name": "Update Confession Status (Admin Only)",
+          "name": "Update Confession Status",
           "request": {
             "method": "PUT",
             "header": [
@@ -477,7 +573,7 @@
                 "status"
               ]
             },
-            "description": "Change confession status - DRAFT, ACTIVE, INACTIVE, INACTIVE_BY_ADMIN, BLOCKED_BY_ADMIN (Admin role required)"
+            "description": "Update confession status: DRAFT, ACTIVE, INACTIVE, INACTIVE_BY_ADMIN, BLOCKED_BY_ADMIN (Admin or confession owner)"
           },
           "response": []
         },
@@ -501,7 +597,7 @@
                 "1"
               ]
             },
-            "description": "Delete a confession (Authenticated)"
+            "description": "Delete a confession (Admin or confession owner)"
           },
           "response": []
         }

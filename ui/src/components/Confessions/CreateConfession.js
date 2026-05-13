@@ -7,10 +7,12 @@ const CreateConfession = ({ confession, onSuccess, onCancel }) => {
   const [formData, setFormData] = useState({
     confesion: "",
     anonymous: true,
+    status: "DRAFT",
     userId: null,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isAdminBlocked, setIsAdminBlocked] = useState(false);
 
   useEffect(() => {
     // Get current user ID
@@ -23,9 +25,14 @@ const CreateConfession = ({ confession, onSuccess, onCancel }) => {
 
     // If editing, populate form
     if (confession) {
+      // Check if confession is admin-blocked
+      const adminBlockedStatuses = ["INACTIVE_BY_ADMIN", "BLOCKED_BY_ADMIN"];
+      setIsAdminBlocked(adminBlockedStatuses.includes(confession.status));
+
       setFormData({
         confesion: confession.confesion,
         anonymous: confession.anonymous,
+        status: confession.status || "DRAFT",
         userId: confession.userId,
       });
     }
@@ -57,9 +64,23 @@ const CreateConfession = ({ confession, onSuccess, onCancel }) => {
           confesion: formData.confesion,
           anonymous: formData.anonymous,
         });
+        // Update status separately if it changed
+        if (formData.status !== confession.status) {
+          await apiService.updateConfessionStatus(
+            confession.id,
+            formData.status,
+          );
+        }
       } else {
         // Create new confession
-        await apiService.createConfession(formData);
+        const response = await apiService.createConfession(formData);
+        // Update status if not DRAFT
+        if (formData.status !== "DRAFT") {
+          await apiService.updateConfessionStatus(
+            response.data.id,
+            formData.status,
+          );
+        }
       }
       onSuccess();
     } catch (err) {
@@ -99,6 +120,33 @@ const CreateConfession = ({ confession, onSuccess, onCancel }) => {
             />
             <span>Post anonymously (hide my identity)</span>
           </label>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="status">Status</label>
+          {isAdminBlocked && (
+            <p className="warning-message">
+              ⚠️ This confession has been blocked by an admin. Status cannot be
+              changed.
+            </p>
+          )}
+          <select
+            id="status"
+            name="status"
+            value={formData.status}
+            onChange={handleChange}
+            disabled={isAdminBlocked}
+          >
+            <option value="DRAFT">Draft</option>
+            <option value="ACTIVE">Active</option>
+            <option value="INACTIVE">Inactive</option>
+            {isAdminBlocked && (
+              <>
+                <option value="INACTIVE_BY_ADMIN">Inactive by Admin</option>
+                <option value="BLOCKED_BY_ADMIN">Blocked by Admin</option>
+              </>
+            )}
+          </select>
         </div>
 
         <div className="form-actions">

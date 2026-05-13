@@ -15,15 +15,21 @@ const MyConfessions = () => {
 
   const loadUserDetails = async () => {
     try {
-      const currentUser = authService.getCurrentUser();
-      if (currentUser) {
-        // In a real app, you'd fetch the user details with ID from the API
-        // For now, we'll use a placeholder
-        setUserId(1); // Placeholder - would come from API
-        setUserDetails(currentUser);
+      // Fetch the actual user profile from the API
+      const response = await apiService.getMyProfile();
+      const userProfile = response.data;
+
+      if (userProfile) {
+        setUserId(userProfile.id);
+        setUserDetails(userProfile);
       }
     } catch (err) {
       console.error("Failed to load user details:", err);
+      // Fallback to localStorage if API call fails
+      const currentUser = authService.getCurrentUser();
+      if (currentUser) {
+        setUserDetails(currentUser);
+      }
     } finally {
       setLoading(false);
     }

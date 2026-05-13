@@ -101,6 +101,14 @@ public class ConfessionService {
 	 */
 	public ConfessionResponseDto updateConfessionStatus(Integer id, UpdateConfessionStatusDto statusRequest) {
 		return confessionDao.findById(id).map(existingConfession -> {
+			// Check if user is trying to change an admin-blocked confession
+			UserPrincipal currentUser = getCurrentUser();
+			if (!currentUser.hasRole("ADMIN") && 
+				(existingConfession.getStatus() == ConfessionStatus.INACTIVE_BY_ADMIN || 
+				 existingConfession.getStatus() == ConfessionStatus.BLOCKED_BY_ADMIN)) {
+				throw new RuntimeException("Cannot change status of admin-blocked confession");
+			}
+			
 			existingConfession.setStatus(statusRequest.status());
 			existingConfession.setUpdatedAt(LocalDateTime.now());
 			Confession updatedConfession = confessionDao.save(existingConfession);
@@ -130,6 +138,16 @@ public class ConfessionService {
 	}
 	
 	/**
+	 * Get all active confessions (for regular users)
+	 */
+	public List<ConfessionResponseDto> getActiveConfessions() {
+		return confessionDao.findByStatus(ConfessionStatus.ACTIVE)
+			.stream()
+			.map(this::convertToConfessionResponseDto)
+			.toList();
+	}
+	
+	/**
 	 * Helper method to convert Confession to ConfessionResponseDto
 	 */
 	private ConfessionResponseDto convertToConfessionResponseDto(Confession confession) {
@@ -140,6 +158,7 @@ public class ConfessionService {
 			confession.getStatus(),
 			confession.getUser().getId(),
 			confession.getUser().getUsername(),
+			confession.getUser().getName(),
 			confession.getCreatedAt(),
 			confession.getUpdatedAt()
 		);

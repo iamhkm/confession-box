@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.hkm.confession_box.Dao.UserDao;
 import com.hkm.confession_box.dto.ChangePasswordRequestDto;
@@ -20,10 +21,12 @@ public class UserService {
 
 	private UserDao userDao;
 	private HashUtil hashUtils;
+	private PasswordEncoder passwordEncoder;
 
-	public UserService(UserDao userDao, HashUtil hashUtils) {
+	public UserService(UserDao userDao, HashUtil hashUtils, PasswordEncoder passwordEncoder) {
 		this.userDao = userDao;
 		this.hashUtils = hashUtils;
+		this.passwordEncoder = passwordEncoder;
 	}
 
 	/**
@@ -64,12 +67,11 @@ public class UserService {
 	/**
 	 * Change user password
 	 */
-	public void changePassword(ChangePasswordRequestDto passwordRequest) {
+	public void changePassword(ChangePasswordRequestDto passwordRequest) throws InvalidUserException{
 		UserPrincipal currentUsere = getCurrentUser();
 		User user = userDao.findById(currentUsere.getId()).orElseThrow(() -> new RuntimeException("User not found with id: " + currentUsere.getId()));
-		String hashedCurrentPassword = hashUtils.hashPassword(passwordRequest.currentPassword());
-		if (!hashedCurrentPassword.equals(user.getPassword())) {
-			throw new RuntimeException("Current password is incorrect");
+		if (!passwordEncoder.matches(passwordRequest.currentPassword(), user.getPassword())) {
+			throw new InvalidUserException("Current password is incorrect");
 		}
 
 		if (!passwordRequest.newPassword().equals(passwordRequest.confirmPassword())) {

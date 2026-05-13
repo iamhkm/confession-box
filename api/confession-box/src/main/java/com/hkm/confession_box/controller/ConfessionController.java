@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.hkm.confession_box.dto.ConfessionResponseDto;
 import com.hkm.confession_box.dto.CreateConfessionRequestDto;
 import com.hkm.confession_box.dto.UpdateConfessionRequestDto;
+import com.hkm.confession_box.dto.UpdateConfessionStatusDto;
 import com.hkm.confession_box.exception.InvalidUserException;
 import com.hkm.confession_box.service.ConfessionService;
 import jakarta.validation.Valid;
@@ -39,6 +40,17 @@ public class ConfessionController {
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<List<ConfessionResponseDto>> getAllConfessions() {
 		List<ConfessionResponseDto> confessions = confessionService.getAllConfessions();
+		return ResponseEntity.ok(confessions);
+	}
+	
+	/**
+	 * Get all active confessions (for regular users)
+	 * 
+	 * @return List of active ConfessionResponseDto
+	 */
+	@GetMapping("/active")
+	public ResponseEntity<List<ConfessionResponseDto>> getActiveConfessions() {
+		List<ConfessionResponseDto> confessions = confessionService.getActiveConfessions();
 		return ResponseEntity.ok(confessions);
 	}
 	
@@ -94,6 +106,21 @@ public class ConfessionController {
 	public ResponseEntity<ConfessionResponseDto> updateConfession(@PathVariable int id, 
 			@Valid @RequestBody UpdateConfessionRequestDto updateRequest) {
 		ConfessionResponseDto updatedConfession = confessionService.updateConfession(id, updateRequest);
+		return ResponseEntity.ok(updatedConfession);
+	}
+	
+	/**
+	 * Update confession status
+	 * 
+	 * @param id Confession ID
+	 * @param statusRequest Confession status update request
+	 * @return ConfessionResponseDto with updated confession details
+	 */
+	@PreAuthorize("hasRole('ADMIN') or @confessionSecurity.isConfessionOwner(authentication, #id)")
+	@PutMapping("/{id}/status")
+	public ResponseEntity<ConfessionResponseDto> updateConfessionStatus(@PathVariable int id,
+			@Valid @RequestBody UpdateConfessionStatusDto statusRequest) {
+		ConfessionResponseDto updatedConfession = confessionService.updateConfessionStatus(id, statusRequest);
 		return ResponseEntity.ok(updatedConfession);
 	}
 	

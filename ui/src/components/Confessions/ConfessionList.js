@@ -4,16 +4,28 @@ import ConfessionCard from "./ConfessionCard";
 import CreateConfession from "./CreateConfession";
 import "./Confessions.css";
 
-const ConfessionList = ({ userId = null }) => {
+const ConfessionList = ({
+  userId = null,
+  showActiveOnly = false,
+  isAdmin = false,
+}) => {
   const [confessions, setConfessions] = useState([]);
+  const [filteredConfessions, setFilteredConfessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingConfession, setEditingConfession] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [sortOrder, setSortOrder] = useState("newest");
+  const [selectedConfession, setSelectedConfession] = useState(null);
 
   useEffect(() => {
     loadConfessions();
-  }, [userId]);
+  }, [userId, showActiveOnly]);
+
+  useEffect(() => {
+    filterAndSortConfessions();
+  }, [confessions, statusFilter, sortOrder]);
 
   const loadConfessions = async () => {
     setLoading(true);
@@ -22,6 +34,8 @@ const ConfessionList = ({ userId = null }) => {
       let response;
       if (userId) {
         response = await apiService.getConfessionsByUserId(userId);
+      } else if (showActiveOnly) {
+        response = await apiService.getActiveConfessions();
       } else {
         response = await apiService.getAllConfessions();
       }
@@ -31,6 +45,24 @@ const ConfessionList = ({ userId = null }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const filterAndSortConfessions = () => {
+    let filtered = [...confessions];
+
+    // Apply status filter
+    if (statusFilter !== "ALL") {
+      filtered = filtered.filter((c) => c.status === statusFilter);
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.createdAt);
+      const dateB = new Date(b.createdAt);
+      return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+    });
+
+    setFilteredConfessions(filtered);
   };
 
   const handleDelete = async (id) => {
@@ -62,6 +94,35 @@ const ConfessionList = ({ userId = null }) => {
     setEditingConfession(null);
   };
 
+  const handleViewConfession = (confession) => {
+    setSelectedConfession(confession);
+  };
+
+  const handleCloseConfessionModal = () => {
+    setSelectedConfession(null);
+  };
+
+  const handleConfessionStatusChange = async (confessionId, newStatus) => {
+    try {
+      await apiService.updateConfessionStatus(confessionId, newStatus);
+
+      // Update local state
+      const updatedConfessions = filteredConfessions.map((c) =>
+        c.id === confessionId ? { ...c, status: newStatus } : c,
+      );
+      setFilteredConfessions(updatedConfessions);
+
+      if (selectedConfession?.id === confessionId) {
+        setSelectedConfession({ ...selectedConfession, status: newStatus });
+      }
+
+      setError(null);
+    } catch (err) {
+      setError("Failed to update confession status");
+      console.error(err);
+    }
+  };
+
   if (loading) {
     return <div className="loading">Loading confessions...</div>;
   }
@@ -69,11 +130,53 @@ const ConfessionList = ({ userId = null }) => {
   return (
     <div className="confession-list-container">
       <div className="confession-list-header">
-        <h2>{userId ? "My Confessions" : "All Confessions"}</h2>
-        <button className="btn-create" onClick={() => setShowCreateForm(true)}>
-          + New Confession
-        </button>
+        <h2>
+          {userId
+            ? "My Confessions"
+            : showActiveOnly
+              ? "Active Confessions"
+              : "All Confessions"}
+        </h2>
+        {userId && (
+          <button
+            className="btn-create"
+            onClick={() => setShowCreateForm(true)}
+          >
+            + New Confession
+          </button>
+        )}
       </div>
+
+      {isAdmin && (
+        <div className="confession-filters">
+          <div className="filter-group">
+            <label htmlFor="statusFilter">Filter by Status:</label>
+            <select
+              id="statusFilter"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="ALL">All</option>
+              <option value="DRAFT">Draft</option>
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
+              <option value="INACTIVE_BY_ADMIN">Inactive by Admin</option>
+              <option value="BLOCKED_BY_ADMIN">Blocked by Admin</option>
+            </select>
+          </div>
+          <div className="filter-group">
+            <label htmlFor="sortOrder">Sort by Time:</label>
+            <select
+              id="sortOrder"
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+            </select>
+          </div>
+        </div>
+      )}
 
       {error && <div className="error-message">{error}</div>}
 
@@ -89,21 +192,120 @@ const ConfessionList = ({ userId = null }) => {
         </div>
       )}
 
-      {confessions.length === 0 ? (
+      {filteredConfessions.length === 0 ? (
         <div className="empty-state">
-          <p>No confessions yet. Be the first to share!</p>
+          <p>
+            {userId
+              ? "No confessions yet. Create your first confession!"
+              : showActiveOnly
+                ? "No active confessions at the moment."
+                : "No confessions found."}
+          </p>
         </div>
       ) : (
         <div className="confessions-grid">
-          {confessions.map((confession) => (
+          {filteredConfessions.map((confession) => (
             <ConfessionCard
               key={confession.id}
               confession={confession}
               onDelete={handleDelete}
               onEdit={handleEdit}
+              onView={handleViewConfession}
               showActions={userId !== null}
+              isAdmin={isAdmin}
             />
           ))}
+        </div>
+      )}
+
+      {/* Confession Detail Modal */}
+      {selectedConfession && (
+        <div className="modal-overlay" onClick={handleCloseConfessionModal}>
+          <div
+            className="modal-content confession-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <h3>Confession Details</h3>
+              <button
+                className="btn-close"
+                onClick={handleCloseConfessionModal}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="confession-detail">
+                <div className="detail-row">
+                  <span className="detail-label">ID:</span>
+                  <span className="detail-value">{selectedConfession.id}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Author:</span>
+                  <span className="detail-value">
+                    {selectedConfession.anonymous
+                      ? "Anonymous"
+                      : selectedConfession.name || selectedConfession.username}
+                  </span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Anonymous:</span>
+                  <span className="detail-value">
+                    {selectedConfession.anonymous ? "Yes" : "No"}
+                  </span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Status:</span>
+                  <div className="status-change-group">
+                    <span
+                      className={`detail-value status-badge ${selectedConfession.status?.toLowerCase()}`}
+                    >
+                      {selectedConfession.status}
+                    </span>
+                    <select
+                      value={selectedConfession.status}
+                      onChange={(e) =>
+                        handleConfessionStatusChange(
+                          selectedConfession.id,
+                          e.target.value,
+                        )
+                      }
+                      className="status-select"
+                    >
+                      <option value="INACTIVE_BY_ADMIN">
+                        Inactive by Admin
+                      </option>
+                      <option value="BLOCKED_BY_ADMIN">Blocked by Admin</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Created:</span>
+                  <span className="detail-value">
+                    {new Date(selectedConfession.createdAt).toLocaleString()}
+                  </span>
+                </div>
+                {selectedConfession.updatedAt &&
+                  selectedConfession.updatedAt !==
+                    selectedConfession.createdAt && (
+                    <div className="detail-row">
+                      <span className="detail-label">Updated:</span>
+                      <span className="detail-value">
+                        {new Date(
+                          selectedConfession.updatedAt,
+                        ).toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                <div className="detail-row full-width">
+                  <span className="detail-label">Content:</span>
+                  <div className="confession-full-content">
+                    {selectedConfession.confesion}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

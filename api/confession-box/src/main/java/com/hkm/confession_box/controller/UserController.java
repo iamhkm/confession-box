@@ -11,8 +11,8 @@ import com.hkm.confession_box.dto.ChangePasswordRequestDto;
 import com.hkm.confession_box.dto.UpdateUserRequestDto;
 import com.hkm.confession_box.dto.UserResponseDto;
 import com.hkm.confession_box.service.UserService;
-
 import jakarta.validation.Valid;
+import com.hkm.confession_box.exception.InvalidUserException;
 
 @RestController
 @RequestMapping("/users")
@@ -51,7 +51,9 @@ public class UserController {
 	 * @return ResponseEntity with status
 	 */
 	@PostMapping("/me/change-password")
-	public ResponseEntity<String> changePassword(@Valid @RequestBody ChangePasswordRequestDto passwordRequest) {
+	public ResponseEntity<String> changePassword(@Valid @RequestBody ChangePasswordRequestDto passwordRequest)
+		throws InvalidUserException
+	{
 		userService.changePassword(passwordRequest);
 		return ResponseEntity.ok("Password changed successfully");
 	}

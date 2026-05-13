@@ -11,6 +11,7 @@ import Login from "./components/Auth/Login";
 import Signup from "./components/Auth/Signup";
 import Dashboard from "./components/Dashboard/Dashboard";
 import MyConfessions from "./components/MyConfessions/MyConfessions";
+import Profile from "./components/Profile/Profile";
 import "./App.css";
 
 // Protected Route component
@@ -74,6 +75,14 @@ const AppContent = () => {
           element={
             <ProtectedRoute>
               <MyConfessions />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
             </ProtectedRoute>
           }
         />

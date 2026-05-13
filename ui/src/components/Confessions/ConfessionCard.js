@@ -1,7 +1,7 @@
 import React from "react";
 import "./Confessions.css";
 
-const ConfessionCard = ({ confession, onDelete, onEdit, showActions }) => {
+const ConfessionCard = ({ confession, onDelete, onEdit, onView, showActions, isAdmin }) => {
   const getStatusBadgeClass = (status) => {
     const statusMap = {
       DRAFT: "status-draft",
@@ -31,7 +31,7 @@ const ConfessionCard = ({ confession, onDelete, onEdit, showActions }) => {
           <span className="confession-author">
             {confession.anonymous
               ? "🎭 Anonymous"
-              : `👤 ${confession.username}`}
+              : `👤 ${confession.name || confession.username}`}
           </span>
           <span
             className={`status-badge ${getStatusBadgeClass(confession.status)}`}
@@ -69,6 +69,15 @@ const ConfessionCard = ({ confession, onDelete, onEdit, showActions }) => {
         </span>
         {confession.updatedAt !== confession.createdAt && (
           <span className="confession-edited">(edited)</span>
+        )}
+        {isAdmin && (
+          <button
+            className="btn-icon btn-view"
+            onClick={() => onView(confession)}
+            title="View Details"
+          >
+            👁️
+          </button>
         )}
       </div>
     </div>

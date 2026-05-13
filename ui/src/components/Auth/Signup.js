@@ -10,7 +10,6 @@ const Signup = () => {
     password: "",
     confirmPassword: "",
     name: "",
-    role: "USER",
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");

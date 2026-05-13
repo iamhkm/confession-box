@@ -6,6 +6,7 @@ const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [userConfessions, setUserConfessions] = useState([]);
+  const [selectedConfession, setSelectedConfession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -49,14 +50,15 @@ const UserManagement = () => {
 
   const handleUserStatusChange = async (userId, currentStatus) => {
     try {
-      const newStatus = currentStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+      const newStatus =
+        currentStatus === "ACTIVE" ? "BLOCKED_BY_ADMIN" : "ACTIVE";
       await apiService.updateUserStatus(userId, newStatus);
-      
+
       // Update local state
-      setUsers(users.map(u => 
-        u.id === userId ? { ...u, status: newStatus } : u
-      ));
-      
+      setUsers(
+        users.map((u) => (u.id === userId ? { ...u, status: newStatus } : u)),
+      );
+
       if (selectedUser?.id === userId) {
         setSelectedUser({ ...selectedUser, status: newStatus });
       }
@@ -70,7 +72,7 @@ const UserManagement = () => {
     if (window.confirm("Are you sure you want to delete this user?")) {
       try {
         await apiService.deleteUser(userId);
-        setUsers(users.filter(u => u.id !== userId));
+        setUsers(users.filter((u) => u.id !== userId));
         if (selectedUser?.id === userId) {
           setSelectedUser(null);
           setUserConfessions([]);
@@ -84,7 +86,12 @@ const UserManagement = () => {
 
   const handleCreateUser = async (e) => {
     e.preventDefault();
-    if (!formData.username || !formData.email || !formData.password || !formData.name) {
+    if (
+      !formData.username ||
+      !formData.email ||
+      !formData.password ||
+      !formData.name
+    ) {
       setError("Please fill in all fields");
       return;
     }
@@ -92,7 +99,14 @@ const UserManagement = () => {
     try {
       const response = await apiService.createUser(formData);
       setUsers([...users, response.data]);
-      setFormData({ username: "", email: "", password: "", name: "", role: "USER", status: "ACTIVE" });
+      setFormData({
+        username: "",
+        email: "",
+        password: "",
+        name: "",
+        role: "USER",
+        status: "ACTIVE",
+      });
       setShowCreateForm(false);
       setError(null);
     } catch (err) {
@@ -103,17 +117,51 @@ const UserManagement = () => {
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  if (loading) return <div className="user-management-container"><p>Loading users...</p></div>;
+  const handleViewConfession = (confession) => {
+    setSelectedConfession(confession);
+  };
+
+  const handleCloseConfessionModal = () => {
+    setSelectedConfession(null);
+  };
+
+  const handleConfessionStatusChange = async (confessionId, newStatus) => {
+    try {
+      await apiService.updateConfessionStatus(confessionId, newStatus);
+
+      // Update local state
+      const updatedConfessions = userConfessions.map((c) =>
+        c.id === confessionId ? { ...c, status: newStatus } : c,
+      );
+      setUserConfessions(updatedConfessions);
+
+      if (selectedConfession?.id === confessionId) {
+        setSelectedConfession({ ...selectedConfession, status: newStatus });
+      }
+
+      setError(null);
+    } catch (err) {
+      setError("Failed to update confession status");
+      console.error(err);
+    }
+  };
+
+  if (loading)
+    return (
+      <div className="user-management-container">
+        <p>Loading users...</p>
+      </div>
+    );
 
   return (
     <div className="user-management-container">
       <h2>👥 User Management</h2>
-      
+
       {error && <div className="error-message">{error}</div>}
-      
+
       <div className="user-management-content">
         {/* Users List */}
         <div className="users-list-section">
@@ -211,7 +259,7 @@ const UserManagement = () => {
             {users.length === 0 ? (
               <p>No users found</p>
             ) : (
-              users.map(user => (
+              users.map((user) => (
                 <div
                   key={user.id}
                   className={`user-item ${selectedUser?.id === user.id ? "active" : ""}`}
@@ -222,7 +270,9 @@ const UserManagement = () => {
                     <div className="user-email">{user.email}</div>
                     <div className="user-role">{user.role}</div>
                   </div>
-                  <div className={`user-status ${user.status?.toLowerCase()}`}>
+                  <div
+                    className={`user-status ${user.status?.toLowerCase().replace(/_/g, "-")}`}
+                  >
                     {user.status}
                   </div>
                 </div>
@@ -238,10 +288,12 @@ const UserManagement = () => {
               <h3>User Details: {selectedUser.username}</h3>
               <div className="user-details-actions">
                 <button
-                  className={`btn btn-status ${selectedUser.status?.toLowerCase()}`}
-                  onClick={() => handleUserStatusChange(selectedUser.id, selectedUser.status)}
+                  className={`btn btn-status ${selectedUser.status?.toLowerCase().replace(/_/g, "-")}`}
+                  onClick={() =>
+                    handleUserStatusChange(selectedUser.id, selectedUser.status)
+                  }
                 >
-                  {selectedUser.status === "ACTIVE" ? "Deactivate" : "Activate"}
+                  {selectedUser.status === "ACTIVE" ? "Block User" : "Activate"}
                 </button>
                 <button
                   className="btn btn-delete"
@@ -263,14 +315,18 @@ const UserManagement = () => {
               </div>
               <div className="meta-item">
                 <span className="label">Status:</span>
-                <span className={`value status ${selectedUser.status?.toLowerCase()}`}>
+                <span
+                  className={`value status ${selectedUser.status?.toLowerCase().replace(/_/g, "-")}`}
+                >
                   {selectedUser.status}
                 </span>
               </div>
               <div className="meta-item">
                 <span className="label">Created:</span>
                 <span className="value">
-                  {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString() : "N/A"}
+                  {selectedUser.createdAt
+                    ? new Date(selectedUser.createdAt).toLocaleDateString()
+                    : "N/A"}
                 </span>
               </div>
             </div>
@@ -281,17 +337,32 @@ const UserManagement = () => {
                 <p className="no-data">No confessions from this user</p>
               ) : (
                 <div className="confessions-list">
-                  {userConfessions.map(confession => (
+                  {userConfessions.map((confession) => (
                     <div key={confession.id} className="confession-item">
                       <div className="confession-header">
-                        <span className="confession-title">{confession.title}</span>
-                        <span className={`confession-status status-${confession.status?.toLowerCase()}`}>
+                        <span className="confession-id">
+                          ID: {confession.id}
+                        </span>
+                        <span
+                          className={`confession-status status-${confession.status?.toLowerCase()}`}
+                        >
                           {confession.status}
                         </span>
                       </div>
-                      <div className="confession-content">{confession.content}</div>
-                      <div className="confession-date">
-                        {new Date(confession.createdAt).toLocaleDateString()}
+                      <div className="confession-preview">
+                        {confession.confesion?.substring(0, 100)}
+                        {confession.confesion?.length > 100 ? "..." : ""}
+                      </div>
+                      <div className="confession-footer">
+                        <span className="confession-date">
+                          {new Date(confession.createdAt).toLocaleDateString()}
+                        </span>
+                        <button
+                          className="btn btn-view"
+                          onClick={() => handleViewConfession(confession)}
+                        >
+                          👁️ View
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -307,6 +378,92 @@ const UserManagement = () => {
           </div>
         )}
       </div>
+
+      {/* Confession Detail Modal */}
+      {selectedConfession && (
+        <div className="modal-overlay" onClick={handleCloseConfessionModal}>
+          <div
+            className="modal-content confession-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <h3>Confession Details</h3>
+              <button
+                className="btn-close"
+                onClick={handleCloseConfessionModal}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="confession-detail">
+                <div className="detail-row">
+                  <span className="detail-label">ID:</span>
+                  <span className="detail-value">{selectedConfession.id}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Anonymous:</span>
+                  <span className="detail-value">
+                    {selectedConfession.anonymous ? "Yes" : "No"}
+                  </span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Status:</span>
+                  <div className="status-change-group">
+                    <span
+                      className={`detail-value status-badge ${selectedConfession.status?.toLowerCase()}`}
+                    >
+                      {selectedConfession.status}
+                    </span>
+                    <select
+                      value={selectedConfession.status}
+                      onChange={(e) =>
+                        handleConfessionStatusChange(
+                          selectedConfession.id,
+                          e.target.value,
+                        )
+                      }
+                      className="status-select"
+                    >
+                      <option value="DRAFT">Draft</option>
+                      <option value="ACTIVE">Active</option>
+                      <option value="INACTIVE">Inactive</option>
+                      <option value="INACTIVE_BY_ADMIN">
+                        Inactive by Admin
+                      </option>
+                      <option value="BLOCKED_BY_ADMIN">Blocked by Admin</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Created:</span>
+                  <span className="detail-value">
+                    {new Date(selectedConfession.createdAt).toLocaleString()}
+                  </span>
+                </div>
+                {selectedConfession.updatedAt &&
+                  selectedConfession.updatedAt !==
+                    selectedConfession.createdAt && (
+                    <div className="detail-row">
+                      <span className="detail-label">Updated:</span>
+                      <span className="detail-value">
+                        {new Date(
+                          selectedConfession.updatedAt,
+                        ).toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                <div className="detail-row full-width">
+                  <span className="detail-label">Content:</span>
+                  <div className="confession-full-content">
+                    {selectedConfession.confesion}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

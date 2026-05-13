@@ -150,6 +150,58 @@
   font-style: italic;
 }
 
+/* Filters */
+.confession-filters {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.filter-group select {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.filter-group select:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.warning-message {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 10px;
+  border-radius: 4px;
+  border-left: 4px solid #ffc107;
+  margin: 5px 0;
+  font-size: 13px;
+}
+
 .empty-state {
   text-align: center;
   padding: 60px 20px;
@@ -225,6 +277,23 @@
 }
 
 .create-confession-form textarea:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.create-confession-form select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  box-sizing: border-box;
+  background-color: white;
+  cursor: pointer;
+}
+
+.create-confession-form select:focus {
   outline: none;
   border-color: #667eea;
 }

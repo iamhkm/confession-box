@@ -27,6 +27,9 @@ const Navbar = () => {
             <Link to="/my-confessions" className="nav-link">
               My Confessions
             </Link>
+            <Link to="/profile" className="nav-link">
+              Profile
+            </Link>
             {isAdmin() && (
               <Link to="/admin" className="nav-link">
                 Admin
