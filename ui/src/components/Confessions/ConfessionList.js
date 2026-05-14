@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from "react";
 import apiService from "../../services/apiService";
-import authService from "../../services/authService";
 import ConfessionCard from "./ConfessionCard";
 import CreateConfession from "./CreateConfession";
-import UnblockRequestModal from "../Notifications/UnblockRequestModal";
 import "./Confessions.css";
 
 const ConfessionList = ({
   userId = null,
   showActiveOnly = false,
   isAdmin = false,
+  onRequestUnblock = null,
 }) => {
   const [confessions, setConfessions] = useState([]);
   const [filteredConfessions, setFilteredConfessions] = useState([]);
@@ -20,16 +19,7 @@ const ConfessionList = ({
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [sortOrder, setSortOrder] = useState("newest");
   const [selectedConfession, setSelectedConfession] = useState(null);
-  const [showUnblockModal, setShowUnblockModal] = useState(false);
-  const [unblockConfession, setUnblockConfession] = useState(null);
-  const [currentUserId, setCurrentUserId] = useState(null);
-
-  useEffect(() => {
-    const user = authService.getCurrentUser();
-    if (user) {
-      setCurrentUserId(user.id);
-    }
-  }, []);
+  const [blockingReason, setBlockingReason] = useState("");
 
   useEffect(() => {
     loadConfessions();
@@ -108,10 +98,12 @@ const ConfessionList = ({
 
   const handleViewConfession = (confession) => {
     setSelectedConfession(confession);
+    setBlockingReason(confession.blockingReason || "");
   };
 
   const handleCloseConfessionModal = () => {
     setSelectedConfession(null);
+    setBlockingReason("");
   };
 
   const handleConfessionStatusChange = async (confessionId, newStatus) => {
@@ -133,20 +125,6 @@ const ConfessionList = ({
       setError("Failed to update confession status");
       console.error(err);
     }
-  };
-
-  const handleRequestUnblock = (confession) => {
-    setUnblockConfession(confession);
-    setShowUnblockModal(true);
-  };
-
-  const handleUnblockSuccess = () => {
-    loadConfessions();
-  };
-
-  const handleCloseUnblockModal = () => {
-    setShowUnblockModal(false);
-    setUnblockConfession(null);
   };
 
   if (loading) {
@@ -237,8 +215,10 @@ const ConfessionList = ({
               onDelete={handleDelete}
               onEdit={handleEdit}
               onView={handleViewConfession}
+              onRequestUnblock={onRequestUnblock}
               showActions={userId !== null}
               isAdmin={isAdmin}
+              currentUserId={userId}
             />
           ))}
         </div>
@@ -280,6 +260,27 @@ const ConfessionList = ({
                     {selectedConfession.anonymous ? "Yes" : "No"}
                   </span>
                 </div>
+                {selectedConfession.status === "BLOCKED_BY_ADMIN" &&
+                  selectedConfession.blockingReason && (
+                    <div className="detail-row">
+                      <span className="detail-label">Blocking Reason:</span>
+                      <span className="detail-value">
+                        {selectedConfession.blockingReason}
+                      </span>
+                    </div>
+                  )}
+                {selectedConfession.status === "BLOCKED_BY_ADMIN" && isAdmin && (
+                  <div className="detail-row">
+                    <span className="detail-label">Update Reason:</span>
+                    <textarea
+                      className="blocking-reason-input"
+                      value={blockingReason}
+                      onChange={(e) => setBlockingReason(e.target.value)}
+                      placeholder="Provide or update the reason for blocking..."
+                      rows="3"
+                    />
+                  </div>
+                )}
                 <div className="detail-row">
                   <span className="detail-label">Status:</span>
                   <div className="status-change-group">
@@ -298,6 +299,7 @@ const ConfessionList = ({
                       }
                       className="status-select"
                     >
+                      <option value="ACTIVE">Active</option>
                       <option value="INACTIVE_BY_ADMIN">
                         Inactive by Admin
                       </option>
@@ -333,14 +335,6 @@ const ConfessionList = ({
             </div>
           </div>
 
-          {/* Unblock Request Modal */}
-          {showUnblockModal && unblockConfession && (
-            <UnblockRequestModal
-              confession={unblockConfession}
-              onClose={handleCloseUnblockModal}
-              onSuccess={handleUnblockSuccess}
-            />
-          )}
         </div>
       )}
     </div>

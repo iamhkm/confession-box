@@ -59,8 +59,7 @@ const ConfessionCard = ({
             <button
               className="btn-icon btn-edit"
               onClick={() => onEdit(confession)}
-              title="Edit"
-              disabled={isBlocked}
+              title={isBlocked ? "Edit (blocked by admin)" : "Edit"}
             >
               ✏️
             </button>
@@ -82,6 +81,11 @@ const ConfessionCard = ({
       {canRequestUnblock && (
         <div className="confession-blocked-notice">
           <p>⚠️ This confession has been blocked by an admin.</p>
+          {confession.blockingReason && (
+            <p className="blocking-reason">
+              <strong>Reason:</strong> {confession.blockingReason}
+            </p>
+          )}
           <button
             className="btn-request-unblock"
             onClick={() => onRequestUnblock(confession)}

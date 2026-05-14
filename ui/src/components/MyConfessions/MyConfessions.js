@@ -2,11 +2,14 @@ import React, { useEffect, useState } from "react";
 import apiService from "../../services/apiService";
 import authService from "../../services/authService";
 import ConfessionList from "../Confessions/ConfessionList";
+import UnblockRequestModal from "../Confessions/UnblockRequestModal";
 import "./MyConfessions.css";
 
 const MyConfessions = () => {
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedConfession, setSelectedConfession] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     loadUserDetails();
@@ -37,6 +40,19 @@ const MyConfessions = () => {
     return <div className="loading">Loading...</div>;
   }
 
+  const handleRequestUnblock = (confession) => {
+    setSelectedConfession(confession);
+  };
+
+  const handleCloseUnblockModal = () => {
+    setSelectedConfession(null);
+  };
+
+  const handleUnblockSuccess = (message) => {
+    setSuccessMessage(message);
+    setTimeout(() => setSuccessMessage(""), 3000);
+  };
+
   return (
     <div className="my-confessions-container">
       <div className="my-confessions-header">
@@ -47,15 +63,30 @@ const MyConfessions = () => {
         </p>
       </div>
 
+      {successMessage && (
+        <div className="success-message">{successMessage}</div>
+      )}
+
       <div className="my-confessions-content">
         {userId ? (
-          <ConfessionList userId={userId} />
+          <ConfessionList
+            userId={userId}
+            onRequestUnblock={handleRequestUnblock}
+          />
         ) : (
           <div className="error-state">
             <p>Unable to load confessions. Please try logging in again.</p>
           </div>
         )}
       </div>
+
+      {selectedConfession && (
+        <UnblockRequestModal
+          confession={selectedConfession}
+          onClose={handleCloseUnblockModal}
+          onSuccess={handleUnblockSuccess}
+        />
+      )}
     </div>
   );
 };

@@ -126,8 +126,7 @@ const CreateConfession = ({ confession, onSuccess, onCancel }) => {
           <label htmlFor="status">Status</label>
           {isAdminBlocked && (
             <p className="warning-message">
-              ⚠️ This confession has been blocked by an admin. Status cannot be
-              changed.
+              ⚠️ This confession has been blocked by an admin. You can edit the content but status cannot be changed. You can request an unblock.
             </p>
           )}
           <select
