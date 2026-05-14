@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import apiService from "../../services/apiService";
+import authService from "../../services/authService";
 import ConfessionCard from "./ConfessionCard";
 import CreateConfession from "./CreateConfession";
+import UnblockRequestModal from "../Notifications/UnblockRequestModal";
 import "./Confessions.css";
 
 const ConfessionList = ({
@@ -18,6 +20,16 @@ const ConfessionList = ({
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [sortOrder, setSortOrder] = useState("newest");
   const [selectedConfession, setSelectedConfession] = useState(null);
+  const [showUnblockModal, setShowUnblockModal] = useState(false);
+  const [unblockConfession, setUnblockConfession] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
+
+  useEffect(() => {
+    const user = authService.getCurrentUser();
+    if (user) {
+      setCurrentUserId(user.id);
+    }
+  }, []);
 
   useEffect(() => {
     loadConfessions();
@@ -121,6 +133,20 @@ const ConfessionList = ({
       setError("Failed to update confession status");
       console.error(err);
     }
+  };
+
+  const handleRequestUnblock = (confession) => {
+    setUnblockConfession(confession);
+    setShowUnblockModal(true);
+  };
+
+  const handleUnblockSuccess = () => {
+    loadConfessions();
+  };
+
+  const handleCloseUnblockModal = () => {
+    setShowUnblockModal(false);
+    setUnblockConfession(null);
   };
 
   if (loading) {
@@ -306,6 +332,15 @@ const ConfessionList = ({
               </div>
             </div>
           </div>
+
+          {/* Unblock Request Modal */}
+          {showUnblockModal && unblockConfession && (
+            <UnblockRequestModal
+              confession={unblockConfession}
+              onClose={handleCloseUnblockModal}
+              onSuccess={handleUnblockSuccess}
+            />
+          )}
         </div>
       )}
     </div>

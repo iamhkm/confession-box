@@ -17,6 +17,7 @@ import com.hkm.confession_box.dto.UpdateConfessionStatusDto;
 import com.hkm.confession_box.exception.InvalidUserException;
 import com.hkm.confession_box.models.Confession;
 import com.hkm.confession_box.models.ConfessionStatus;
+import com.hkm.confession_box.models.NotificationType;
 import com.hkm.confession_box.models.User;
 
 @Service
@@ -24,10 +25,12 @@ public class ConfessionService {
 	
 	private ConfessionDao confessionDao;
 	private UserDao userDao;
+	private NotificationService notificationService;
 	
-	public ConfessionService(ConfessionDao confessionDao, UserDao userDao) {
+	public ConfessionService(ConfessionDao confessionDao, UserDao userDao, NotificationService notificationService) {
 		this.confessionDao = confessionDao;
 		this.userDao = userDao;
+		this.notificationService = notificationService;
 	}
 	
 	/**
@@ -109,9 +112,37 @@ public class ConfessionService {
 				throw new RuntimeException("Cannot change status of admin-blocked confession");
 			}
 			
-			existingConfession.setStatus(statusRequest.status());
+			ConfessionStatus oldStatus = existingConfession.getStatus();
+			ConfessionStatus newStatus = statusRequest.status();
+			
+			existingConfession.setStatus(newStatus);
 			existingConfession.setUpdatedAt(LocalDateTime.now());
 			Confession updatedConfession = confessionDao.save(existingConfession);
+			
+			// Send notifications based on status change
+			if (currentUser.hasRole("ADMIN") && !oldStatus.equals(newStatus)) {
+				User admin = userDao.findById(currentUser.getId()).orElse(null);
+				String adminUsername = admin != null ? admin.getUsername() : "Admin";
+				
+				NotificationType notificationType = null;
+				
+				if (newStatus == ConfessionStatus.BLOCKED_BY_ADMIN) {
+					notificationType = NotificationType.CONFESSION_BLOCKED;
+				} else if (newStatus == ConfessionStatus.ACTIVE && oldStatus == ConfessionStatus.BLOCKED_BY_ADMIN) {
+					notificationType = NotificationType.CONFESSION_UNBLOCKED;
+				} else if (newStatus == ConfessionStatus.ACTIVE && oldStatus == ConfessionStatus.DRAFT) {
+					notificationType = NotificationType.CONFESSION_APPROVED;
+				} else if (newStatus == ConfessionStatus.ACTIVE) {
+					notificationType = NotificationType.CONFESSION_ACTIVATED;
+				} else if (newStatus == ConfessionStatus.INACTIVE_BY_ADMIN) {
+					notificationType = NotificationType.CONFESSION_DEACTIVATED;
+				}
+				
+				if (notificationType != null) {
+					notificationService.notifyConfessionStatusChange(updatedConfession, notificationType, adminUsername);
+				}
+			}
+			
 			return convertToConfessionResponseDto(updatedConfession);
 		}).orElseThrow(() -> new RuntimeException("Confession not found with id: " + id));
 	}

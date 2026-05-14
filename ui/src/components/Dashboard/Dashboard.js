@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
 import ConfessionList from "../Confessions/ConfessionList";
 import UserManagement from "../Admin/UserManagement";
@@ -15,11 +15,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [adminTab, setAdminTab] = useState("confessions");
 
-  useEffect(() => {
-    loadStats();
-  }, []);
-
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     setLoading(true);
     try {
       if (isAdmin()) {
@@ -38,7 +34,11 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAdmin]);
+
+  useEffect(() => {
+    loadStats();
+  }, [loadStats]);
 
   return (
     <div className="dashboard-container">

@@ -1,7 +1,16 @@
 import React from "react";
 import "./Confessions.css";
 
-const ConfessionCard = ({ confession, onDelete, onEdit, onView, showActions, isAdmin }) => {
+const ConfessionCard = ({
+  confession,
+  onDelete,
+  onEdit,
+  onView,
+  showActions,
+  isAdmin,
+  onRequestUnblock,
+  currentUserId,
+}) => {
   const getStatusBadgeClass = (status) => {
     const statusMap = {
       DRAFT: "status-draft",
@@ -24,6 +33,12 @@ const ConfessionCard = ({ confession, onDelete, onEdit, onView, showActions, isA
     });
   };
 
+  const isBlocked =
+    confession.status === "BLOCKED_BY_ADMIN" ||
+    confession.status === "INACTIVE_BY_ADMIN";
+  const canRequestUnblock =
+    isBlocked && !isAdmin && currentUserId === confession.userId;
+
   return (
     <div className="confession-card">
       <div className="confession-header">
@@ -45,6 +60,7 @@ const ConfessionCard = ({ confession, onDelete, onEdit, onView, showActions, isA
               className="btn-icon btn-edit"
               onClick={() => onEdit(confession)}
               title="Edit"
+              disabled={isBlocked}
             >
               ✏️
             </button>
@@ -62,6 +78,18 @@ const ConfessionCard = ({ confession, onDelete, onEdit, onView, showActions, isA
       <div className="confession-content">
         <p>{confession.confesion}</p>
       </div>
+
+      {canRequestUnblock && (
+        <div className="confession-blocked-notice">
+          <p>⚠️ This confession has been blocked by an admin.</p>
+          <button
+            className="btn-request-unblock"
+            onClick={() => onRequestUnblock(confession)}
+          >
+            Request Unblock
+          </button>
+        </div>
+      )}
 
       <div className="confession-footer">
         <span className="confession-date">

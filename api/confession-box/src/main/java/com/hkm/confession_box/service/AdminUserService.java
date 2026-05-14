@@ -13,7 +13,9 @@ import com.hkm.confession_box.dto.AdminCreateUserRequestDto;
 import com.hkm.confession_box.dto.UpdateUserStatusDto;
 import com.hkm.confession_box.dto.UserListResponseDto;
 import com.hkm.confession_box.dto.UserResponseDto;
+import com.hkm.confession_box.models.NotificationType;
 import com.hkm.confession_box.models.User;
+import com.hkm.confession_box.models.UserStatus;
 import com.hkm.confession_box.utils.HashUtil;
 
 @Service
@@ -21,10 +23,12 @@ public class AdminUserService {
 
 	private UserDao userDao;
 	private HashUtil hashUtils;
+	private NotificationService notificationService;
 
-	public AdminUserService(UserDao userDao, HashUtil hashUtils) {
+	public AdminUserService(UserDao userDao, HashUtil hashUtils, NotificationService notificationService) {
 		this.userDao = userDao;
 		this.hashUtils = hashUtils;
+		this.notificationService = notificationService;
 	}
 
 	/**
@@ -72,9 +76,34 @@ public class AdminUserService {
 	 */
 	public UserResponseDto updateUserStatus(int id, UpdateUserStatusDto statusRequest) {
 		return userDao.findById(id).map(existingUser -> {
-			existingUser.setStatus(statusRequest.status());
+			UserStatus oldStatus = existingUser.getStatus();
+			UserStatus newStatus = statusRequest.status();
+			
+			existingUser.setStatus(newStatus);
 			existingUser.setUpdatedAt(LocalDateTime.now());
 			User updatedUser = userDao.save(existingUser);
+			
+			// Send notification to user about status change
+			if (!oldStatus.equals(newStatus)) {
+				NotificationType notificationType = null;
+				String message = null;
+				
+				if (newStatus == UserStatus.BLOCKED_BY_ADMIN) {
+					notificationType = NotificationType.USER_BLOCKED;
+					message = "Your account has been blocked by admin";
+				} else if (newStatus == UserStatus.ACTIVE && oldStatus == UserStatus.BLOCKED_BY_ADMIN) {
+					notificationType = NotificationType.USER_UNBLOCKED;
+					message = "Your account has been unblocked by admin";
+				} else if (newStatus == UserStatus.ACTIVE) {
+					notificationType = NotificationType.USER_ACTIVATED;
+					message = "Your account has been activated";
+				}
+				
+				if (notificationType != null && message != null) {
+					notificationService.notifyUserStatusChange(updatedUser, notificationType, message);
+				}
+			}
+			
 			return convertToUserResponseDto(updatedUser);
 		}).orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 	}

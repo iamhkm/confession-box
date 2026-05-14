@@ -6,7 +6,6 @@ import "./MyConfessions.css";
 
 const MyConfessions = () => {
   const [userId, setUserId] = useState(null);
-  const [userDetails, setUserDetails] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,14 +20,13 @@ const MyConfessions = () => {
 
       if (userProfile) {
         setUserId(userProfile.id);
-        setUserDetails(userProfile);
       }
     } catch (err) {
       console.error("Failed to load user details:", err);
       // Fallback to localStorage if API call fails
       const currentUser = authService.getCurrentUser();
       if (currentUser) {
-        setUserDetails(currentUser);
+        setUserId(currentUser.id);
       }
     } finally {
       setLoading(false);

@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import NotificationBell from "../Notifications/NotificationBell";
 import "./Layout.css";
 
 const Navbar = () => {
@@ -31,10 +32,16 @@ const Navbar = () => {
               Profile
             </Link>
             {isAdmin() && (
-              <Link to="/admin" className="nav-link">
-                Admin
-              </Link>
+              <>
+                <Link to="/admin" className="nav-link">
+                  Users
+                </Link>
+                <Link to="/admin/unblock-requests" className="nav-link">
+                  Unblock Requests
+                </Link>
+              </>
             )}
+            <NotificationBell />
             <div className="navbar-user">
               <span className="user-info">
                 👤 {user.username} {isAdmin() && "(Admin)"}

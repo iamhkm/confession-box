@@ -12,6 +12,8 @@ import Signup from "./components/Auth/Signup";
 import Dashboard from "./components/Dashboard/Dashboard";
 import MyConfessions from "./components/MyConfessions/MyConfessions";
 import Profile from "./components/Profile/Profile";
+import UserManagement from "./components/Admin/UserManagement";
+import UnblockRequests from "./components/Admin/UnblockRequests";
 import "./App.css";
 
 // Protected Route component
@@ -23,6 +25,21 @@ const ProtectedRoute = ({ children }) => {
   }
 
   return isAuthenticated ? children : <Navigate to="/login" />;
+};
+
+// Admin Route component
+const AdminRoute = ({ children }) => {
+  const { isAuthenticated, isAdmin, loading } = useAuth();
+
+  if (loading) {
+    return <div className="loading-screen">Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
+  return isAdmin() ? children : <Navigate to="/dashboard" />;
 };
 
 // Public Route component (redirect if already logged in)
@@ -84,6 +101,32 @@ const AppContent = () => {
             <ProtectedRoute>
               <Profile />
             </ProtectedRoute>
+          }
+        />
+
+        {/* Admin routes */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <UserManagement />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <AdminRoute>
+              <UserManagement />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/unblock-requests"
+          element={
+            <AdminRoute>
+              <UnblockRequests />
+            </AdminRoute>
           }
         />
 

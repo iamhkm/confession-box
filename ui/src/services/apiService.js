@@ -118,6 +118,57 @@ const apiService = {
   deleteUser: (id) => {
     return apiClient.delete(`/admin/users/${id}`);
   },
+
+  // Notification endpoints
+  getMyNotifications: () => {
+    return apiClient.get("/api/notifications");
+  },
+
+  getUnreadNotifications: () => {
+    return apiClient.get("/api/notifications/unread");
+  },
+
+  getUnreadCount: () => {
+    return apiClient.get("/api/notifications/unread/count");
+  },
+
+  markNotificationAsRead: (id) => {
+    return apiClient.put(`/api/notifications/${id}/read`);
+  },
+
+  markAllNotificationsAsRead: () => {
+    return apiClient.put("/api/notifications/read-all");
+  },
+
+  // Unblock Request endpoints
+  createUnblockRequest: (confessionId, reason) => {
+    return apiClient.post(`/api/unblock-requests/confession/${confessionId}`, {
+      reason,
+    });
+  },
+
+  getMyUnblockRequests: () => {
+    return apiClient.get("/api/unblock-requests/my-requests");
+  },
+
+  getAllUnblockRequests: () => {
+    return apiClient.get("/api/unblock-requests");
+  },
+
+  getPendingUnblockRequests: () => {
+    return apiClient.get("/api/unblock-requests/pending");
+  },
+
+  getUnblockRequestById: (id) => {
+    return apiClient.get(`/api/unblock-requests/${id}`);
+  },
+
+  reviewUnblockRequest: (id, status, adminComment) => {
+    return apiClient.put(`/api/unblock-requests/${id}/review`, {
+      status,
+      adminComment,
+    });
+  },
 };
 
 export default apiService;
